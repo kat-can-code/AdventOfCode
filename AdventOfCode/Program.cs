@@ -10,14 +10,15 @@ namespace AdventOfCode
             {
                 Console.WriteLine("Enter the day and problem to solve, in the format of D1P1, D1P2...etc");
                 string input = Console.ReadLine();
-                while (input != "E")
+                input = input.ToLower();
+                while (!String.Equals(input, "e", StringComparison.OrdinalIgnoreCase))
                 {
                     switch (input)
                     {
-                        case "D1P1":
+                        case "d1p1":
                             Day1.Solve("Data/D1P1.txt");
                             break;
-                        case "D1P2":
+                        case "d1p2":
                             Day1.Solve("Data/D1P1.txt", true);
                             break;
                         default:
@@ -25,8 +26,8 @@ namespace AdventOfCode
                             break;
                     }
 
-                    Console.WriteLine("Type E to exit. Or select another puzzle in the format D1P1, D1P2 etc.");
-                    input = Console.ReadLine();
+                    Console.WriteLine("Type e to exit. Or select another puzzle in the format D1P1, D1P2 etc.");
+                    input = Console.ReadLine().ToLower();
                 }    
             }
             catch(Exception e)
