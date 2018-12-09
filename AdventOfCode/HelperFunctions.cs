@@ -13,12 +13,13 @@ namespace AdventOfCode
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        public static string[] ReadFile(string filePath)
+        public static List<string> ReadFile(string filePath)
         {
             try
             {
                 string[] fileContents = System.IO.File.ReadAllLines(filePath);
-                return fileContents;
+                List<string> fileContentsList = new List<string>(fileContents);
+                return fileContentsList;
             }
             catch(Exception e)
             {

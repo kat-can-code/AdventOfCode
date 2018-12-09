@@ -13,23 +13,30 @@ namespace AdventOfCode
         /// </summary>
         /// <param name="inputFilePath"></param>
         /// <returns></returns>
-        public static int Solve(string inputFilePath)
+        public static void Solve(string inputFilePath, bool isP2 = false)
         {
-            if (Validate())
+            try
             {
-                string[] input = HelperFunctions.ReadFile(inputFilePath);
-                if(input != null)
+                if (Validate())
                 {
-                    return GetOutput(input);
+                    List<string> input = HelperFunctions.ReadFile(inputFilePath);
+                    if (input != null)
+                    {
+                        Console.WriteLine($"Day1. Solution is: " + GetOutput(input, isP2));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Day1. File at {inputFilePath} was null.");
+                    }
                 }
                 else
                 {
-                    throw new Exception($"Day1. File at {inputFilePath} was null.");
+                    Console.WriteLine("Day1. Tests failed. Did not run GetOutput.");
                 }
             }
-            else
+            catch(Exception e)
             {
-                throw new Exception("Day1. Tests failed. Did not run GetOutput.");
+                Console.WriteLine("Day1: Error occurred. " + e.Message);
             }
 
         }
@@ -39,30 +46,62 @@ namespace AdventOfCode
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private static int GetOutput(string[] input)
+        private static int GetOutput(List<string> input, bool isP2 = false)
         {
             int output = 0;
-            
-            foreach(string line in input)
+
+            // Initialize P2
+            Dictionary<int, int> p2 = new Dictionary<int, int>();
+            p2.Add(output, output);
+            int maxIteration = 500;
+            int i = 0;
+            while (i < maxIteration)
             {
-                string tempLine = line.Trim();
-                char operation = tempLine[0];
-                int value = Convert.ToInt32(tempLine.Substring(1));
-                if (operation == '-')
+                foreach (string line in input)
                 {
-                    output -= value;
+                    string tempLine = line.Trim();
+                    char operation = tempLine[0];
+                    int value = Convert.ToInt32(tempLine.Substring(1));
+                    if (operation == '-')
+                    {
+                        output -= value;
+                    }
+                    else if (operation == '+')
+                    {
+                        output += value;
+                    }
+                    else
+                    {
+                        throw new Exception($"Day1. Error has occurred during calculation due to line {tempLine}");
+                    }
+
+                    //check for p2
+                    if (isP2)
+                    {
+                        // P2 duplicate found
+                        if (p2.ContainsKey(output))
+                        {
+                            return output;
+                        }
+                        else
+                        {
+                            p2.Add(output, output);
+                        }
+                    }
                 }
-                else if (operation == '+')
+
+                // P1 is found
+                if (!isP2)
                 {
-                    output += value;
+                    return output;
                 }
-                else
-                {
-                    throw new Exception($"Day1. Error has occurred during calculation due to line {tempLine}");
-                }
+
+                i++;
+
             }
 
-            return output;
+            //P2 no dupe found
+            throw new Exception($"D1P2 no duplicate found in {maxIteration} iterations");
         }
 
         
@@ -73,29 +112,69 @@ namespace AdventOfCode
         /// <returns></returns>
         public static bool Validate()
         {
-            string[] testArray1 = { "+1", "+1", "+1" };
-            int testResult = GetOutput(testArray1);
+            List<string> testArray = new List<string>(){ "+1", "+1", "+1" };
+            int testResult = GetOutput(testArray);
             if(testResult != 3)
             {
                 return false;
             }
 
-            string[] testArray2 = { "+1", "+1", "-2" };
-            testResult = GetOutput(testArray2);
+            testArray = new List<string>() { "+1", "-2", "+3", "+1" };
+            testResult = GetOutput(testArray);
+            if (testResult != 3)
+            {
+                return false;
+            }
+
+            testResult = GetOutput(testArray, true);
+            if (testResult != 2)
+            {
+                return false;
+            }
+
+            testArray = new List<string>{ "+1", "+1", "-2" };
+            testResult = GetOutput(testArray);
             if (testResult != 0)
             {
                 return false;
             }
 
-            string[] testArray3 = { "-1", "-2", "-3" };
-            testResult = GetOutput(testArray3);
+            testArray = new List<string>{ "-1", "-2", "-3" };
+            testResult = GetOutput(testArray);
             if (testResult != -6)
             {
                 return false;
             }
 
-            return true;
+            testArray = new List<string>{"+1","-1" };
+            testResult = GetOutput(testArray, true);
+            if (testResult != 0)
+            {
+                return false;
+            }
 
+            testArray = new List<string> { "+3", "+3", "+4", "-2", "-4" };
+            testResult = GetOutput(testArray, true);
+            if (testResult != 10)
+            {
+                return false;
+            }
+
+            testArray = new List<string> { "-6", "+3", "+8", "+5", "-6" };
+            testResult = GetOutput(testArray, true);
+            if (testResult != 5)
+            {
+                return false;
+            }
+
+            testArray = new List<string> { "+7", "+7", "-2", "-7", "-4" };
+            testResult = GetOutput(testArray, true);
+            if (testResult != 14)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

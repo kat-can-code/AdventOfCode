@@ -15,7 +15,10 @@ namespace AdventOfCode
                     switch (input)
                     {
                         case "D1P1":
-                            Console.WriteLine("Day 1 Solution: " + Day1.Solve("Data/D1P1.txt"));
+                            Day1.Solve("Data/D1P1.txt");
+                            break;
+                        case "D1P2":
+                            Day1.Solve("Data/D1P1.txt", true);
                             break;
                         default:
                             Console.WriteLine("Please enter a valid selection.");
