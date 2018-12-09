@@ -9,36 +9,28 @@ namespace AdventOfCode
     class Day1
     {
         /// <summary>
-        /// Solve day 1's puzzle
+        /// Solve day 1's puzzles
         /// </summary>
         /// <param name="inputFilePath"></param>
         /// <returns></returns>
         public static void Solve(string inputFilePath, bool isP2 = false)
         {
-            try
+            if (Validate())
             {
-                if (Validate())
+                List<string> input = HelperFunctions.ReadFile(inputFilePath);
+                if (input != null)
                 {
-                    List<string> input = HelperFunctions.ReadFile(inputFilePath);
-                    if (input != null)
-                    {
-                        Console.WriteLine($"Day1. Solution is: " + GetOutput(input, isP2));
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Day1. File at {inputFilePath} was null.");
-                    }
+                    Console.WriteLine($"Solution is: " + GetOutput(input, isP2));
                 }
                 else
                 {
-                    Console.WriteLine("Day1. Tests failed. Did not run GetOutput.");
+                    Console.WriteLine($"File at {inputFilePath} was null.");
                 }
             }
-            catch(Exception e)
+            else
             {
-                Console.WriteLine("Day1: Error occurred. " + e.Message);
+                Console.WriteLine("Tests failed. Did not run day 1.");
             }
-
         }
 
         /// <summary>
@@ -72,7 +64,7 @@ namespace AdventOfCode
                     }
                     else
                     {
-                        throw new Exception($"Day1. Error has occurred during calculation due to line {tempLine}");
+                        throw new Exception($"Error has occurred during calculation due to line {tempLine}");
                     }
 
                     //check for p2
