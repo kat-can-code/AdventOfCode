@@ -14,6 +14,17 @@ namespace AdventOfCode
             if (Validate())
             {
                 List<string> input = HelperFunctions.ReadFile(inputPath);
+                int result = 0;
+                if (isP2)
+                {
+                    result = GetStrategyTwo(input);
+                    Console.WriteLine($"Solution is {result}");
+                }
+                else
+                {
+                    result = GetStrategyOne(input);
+                    Console.WriteLine($"Solution is {result}");
+                }
             }
             else
             {
@@ -21,8 +32,52 @@ namespace AdventOfCode
             }
         }
 
+        /// <summary>
+        /// Solution for part 2
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static int GetStrategyTwo(List<string> input)
+        {
 
-        public static void ParseStringsIntoSortedRecords(List<string> input)
+            List<Record> recordList = GetPartialRecordsFromString(input);
+            // Sort list into datetime order
+            recordList = recordList.OrderBy(p => p.date).ToList();
+            recordList = GetFullRecords(recordList);
+            List<Guard> guards = GetGuards(recordList);
+            int highestValue = 0;
+            int currentValue = 0;
+            Guard maxGuard = new Guard();
+            foreach (Guard guard in guards)
+            {
+                if (maxGuard.GuardId == 0)
+                {
+                    maxGuard = guard;
+                }
+
+                highestValue = maxGuard.sleepFrequency[maxGuard.maxSleepMinute];
+                if (guard.sleepFrequency.Count == 0)
+                {
+                    continue;
+                }
+                currentValue = guard.sleepFrequency[guard.maxSleepMinute];
+                if (currentValue > highestValue)
+                {
+                    maxGuard = guard;
+                }
+            }
+
+            int checksum = maxGuard.GuardId * maxGuard.maxSleepMinute;
+
+            return checksum;
+        }
+
+        /// <summary>
+        /// Solution for part 1
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static int GetStrategyOne(List<string> input)
         {
             List<Record> recordList = GetPartialRecordsFromString(input);
             // Sort list into datetime order
@@ -30,7 +85,11 @@ namespace AdventOfCode
             recordList = GetFullRecords(recordList);
             List<Guard> guards = GetGuards(recordList);
 
-            Guard highestGuard = guards.First();
+            Guard highestGuard = guards.OrderByDescending(p => p.totalSleep).ToList().First();
+
+            int checksum = highestGuard.GuardId * highestGuard.maxSleepMinute;
+
+            return checksum;
         }
 
         public static int GetTotalSleepMinutes(Dictionary<int,int> sleepFrequency)
@@ -44,7 +103,7 @@ namespace AdventOfCode
         /// <param name="sleepFrequency"></param>
         public static int GetMostFrequentMinute(Dictionary<int, int> sleepFrequency)
         {
-            return sleepFrequency.FirstOrDefault(p => p.Value == sleepFrequency.Values.Max()).Value;
+              return sleepFrequency.FirstOrDefault(p => p.Value == sleepFrequency.Values.Max()).Key;
         }
 
         /// <summary>
@@ -54,58 +113,66 @@ namespace AdventOfCode
         /// <returns></returns>
         public static List<Guard> GetGuards(List<Record> recordList)
         {
-            List<Guard> guards = new List<Guard>();
-            Dictionary<int, int> sleepFrequency = new Dictionary<int,int>();
+            Dictionary<int,Guard> guards = new Dictionary<int, Guard>();
+
+            int startTime = 59;
+            int endTime = 0;
+            int currentGuardId = 0;
 
             foreach (Record record in recordList)
             {
-                int sleepMinuteStart = 0;
-                int sleepMinuteEnd = 0;
-                if (record.isAsleep == false)
+                if (!guards.ContainsKey(record.guardId))
                 {
-                    if (record.date.Hour > 0)
-                    {
-                        sleepMinuteStart = 0;
-                    }
-                    else
-                    {
-                        sleepMinuteStart = record.date.Minute;
-                    }
-                }
-                else
-                {
-                    if (record.date.Hour > 0)
-                    {
-                        sleepMinuteEnd = 59;
-                    }
-                    else
-                    {
-                        sleepMinuteEnd = record.date.Minute;
-                    }
-                }
-                sleepFrequency = GetSleepFrequency(sleepMinuteStart, sleepMinuteEnd, sleepFrequency);
-
-                Guard guard;
-                if (!guards.Select(p => p.GuardId).Contains(record.guardId))
-                {
-                    guard = new Guard();
+                    Guard guard = new Guard();
+                    guard.sleepFrequency = new Dictionary<int, int>();
                     guard.GuardId = record.guardId;
-                    guard.sleepFrequency = sleepFrequency;
-                    guards.Add(guard);
+                    guards.Add(guard.GuardId, guard);
                 }
-                else
+                
+                if (currentGuardId == 0)
                 {
-                    guards.First(p => p.GuardId == record.guardId).sleepFrequency = sleepFrequency;
+                    currentGuardId = record.guardId;
                 }
-            }
 
-            foreach(Guard guard in guards)
+                // New guard started his shift
+                if (currentGuardId != record.guardId)
+                {
+                    // if guard falls asleep til end of the shift
+                    if(endTime < startTime)
+                    {
+                        endTime = 59;
+                        guards[currentGuardId].sleepFrequency = GetSleepFrequency(startTime, endTime, guards[currentGuardId].sleepFrequency);
+                    }
+
+                    currentGuardId = record.guardId;
+                }
+
+
+                if (record.date.Hour == 0 && record.isAsleep == false)
+                {
+                    endTime = record.date.Minute;
+                }
+                if (record.date.Hour == 0 && record.isAsleep == true)
+                {
+                    startTime = record.date.Minute;
+                }
+                
+                if(startTime <= endTime)
+                {
+                    guards[currentGuardId].sleepFrequency = GetSleepFrequency(startTime, endTime, guards[currentGuardId].sleepFrequency);
+                    startTime = 59;
+                    endTime = 0;
+                }
+
+            }
+                
+            foreach(int guardId in guards.Keys)
             {
-                guard.totalSleep = GetTotalSleepMinutes(guard.sleepFrequency);
-                guard.maxSleepMinute = GetMostFrequentMinute(guard.sleepFrequency);
+                guards[guardId].totalSleep = GetTotalSleepMinutes(guards[guardId].sleepFrequency);
+                guards[guardId].maxSleepMinute = GetMostFrequentMinute(guards[guardId].sleepFrequency);
             }
 
-            return guards.OrderBy(p => p.totalSleep).ToList();
+            return guards.Values.ToList();
 
         }
 
@@ -136,6 +203,11 @@ namespace AdventOfCode
             return sleepFrequency;
         }
 
+        /// <summary>
+        /// Phase two parsing of records
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static List<Record> GetFullRecords(List<Record> input)
         {
             int currentGuardId = 0;
@@ -201,9 +273,21 @@ namespace AdventOfCode
 
         public static bool Validate()
         {
+            bool result = false;
             List<string> input = HelperFunctions.ReadFile("Data/D4P1Test.txt");
-            ParseStringsIntoSortedRecords(input);
-            return false;
+            int testResult = GetStrategyOne(input);
+            if(testResult == 240)
+            {
+                result = true;
+            }
+
+            testResult = GetStrategyTwo(input);
+            if(testResult == 4455)
+            {
+                result = true;
+            }
+
+            return result;
         }
 
     }
