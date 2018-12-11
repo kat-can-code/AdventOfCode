@@ -58,6 +58,12 @@ namespace AdventOfCode
                         case "4.2":
                             Day4.Solve("Data/D4P1.txt", true);
                             break;
+                        case "5.1":
+                            Day5.Solve("Data/D5P1.txt");
+                            break;
+                        case "5.2":
+                            Day5.Solve("Data/D5P1.txt", true);
+                            break;
                         default:
                             Console.WriteLine("No puzzle found for specified date. Try again.");
                             break;
